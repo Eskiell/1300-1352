@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-BR" manifest="cache.appcache">
+<html lang="en" manifest="cache.appcache">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Jailbreak PS4</title>
+  <title>PS4 Jailbreak</title>
   <style>
     html, body { min-height:100%; margin:0; background:#0b0d10; color:#e6ebf2;
       font:16px/1.5 "Segoe UI", Arial, sans-serif; }
@@ -41,17 +41,17 @@
 <body>
   <main>
     <div class="panel">
-      <h1>Jailbreak PS4</h1>
+      <h1>PS4 Jailbreak</h1>
       <p id="det"></p>
-      <button id="start" type="button" disabled>Carregando...</button>
+      <button id="start" type="button" disabled>Loading...</button>
       <div id="progress-area" aria-live="polite">
-        <div id="progress-head"><span id="stage">Preparando...</span><span id="percent">0%</span></div>
-        <div id="progress-track" role="progressbar" aria-label="Progresso do jailbreak"
+        <div id="progress-head"><span id="stage">Preparing...</span><span id="percent">0%</span></div>
+        <div id="progress-track" role="progressbar" aria-label="Jailbreak progress"
           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div id="progress-fill"></div>
         </div>
       </div>
-      <p id="state" role="status">Pronto para iniciar.</p>
+      <p id="state" role="status">Ready to start.</p>
       <p id="result"></p>
       <p id="cache"></p>
       <div id="msg"></div>
@@ -77,7 +77,7 @@
     let progress = 0;
 
     const match = /PlayStation\s+4[\/ ](\d+)\.(\d+)/.exec(navigator.userAgent);
-    let firmware = "desconhecido";
+    let firmware = "unknown";
     let firmwareNumber = null;
     if (match) {
       let minor = parseInt(match[2], 16).toString(16);
@@ -87,24 +87,24 @@
     }
     const supported = params.get("force") === "1" || supportedFirmwares[firmwareNumber] === 1;
     detEl.innerHTML = "Firmware <strong>" + firmware + "</strong> · " +
-      (supported ? "compatível" : "não listado nesta versão");
+      (supported ? "supported" : "not listed in this build");
     if (!supported) {
-      startButton.textContent = "Executar mesmo assim";
-      stateEl.textContent = "Confira o firmware antes de iniciar.";
-    } else startButton.textContent = "Iniciar";
+      startButton.textContent = "Run anyway";
+      stateEl.textContent = "Check the firmware before starting.";
+    } else startButton.textContent = "Start";
 
     // These percentages denote completed stages, not elapsed time.
     const milestones = {
-      "BUILD": [5, "Preparando"],
-      "PRIMITIVE-OK": [20, "Acesso inicial concluído"],
-      "BASES": [30, "Verificando módulos"],
-      "PR-LEAK": [42, "Lendo memória"],
-      "PR-PASSB": [55, "Validando acesso"],
-      "KF-WRITE": [67, "Preparando kernel"],
-      "KRW-VERDICT": [78, "Acesso ao kernel verificado"],
-      "JB-ROOT": [85, "Aplicando jailbreak"],
-      "KPATCH-COPY": [91, "Aplicando patches"],
-      "PAYLOAD-RUN": [96, "Iniciando payload"]
+      "BUILD": [5, "Preparing"],
+      "PRIMITIVE-OK": [20, "Initial access complete"],
+      "BASES": [30, "Checking modules"],
+      "PR-LEAK": [42, "Reading memory"],
+      "PR-PASSB": [55, "Validating access"],
+      "KF-WRITE": [67, "Preparing kernel"],
+      "KRW-VERDICT": [78, "Kernel access verified"],
+      "JB-ROOT": [85, "Applying jailbreak"],
+      "KPATCH-COPY": [91, "Applying patches"],
+      "PAYLOAD-RUN": [96, "Starting payload"]
     };
     function setProgress(value, label) {
       if (value < progress) return;
@@ -120,22 +120,22 @@
     window.jbUi = {
       progress: function (tag) {
         if (milestones[tag]) setProgress(milestones[tag][0], milestones[tag][1]);
-        if (tag === "RETRY-NEEDED") resultEl.textContent = "Atualize a página antes de tentar novamente.";
+        if (tag === "RETRY-NEEDED") resultEl.textContent = "Refresh the page before trying again.";
       },
       finish: function (ok, armed) {
         running = false;
         if (ok) {
-          setProgress(100, "Concluído");
-          stateEl.textContent = "Concluído.";
+          setProgress(100, "Complete");
+          stateEl.textContent = "Complete.";
           stateEl.className = "ok";
-          resultEl.textContent = "O payload foi iniciado.";
+          resultEl.textContent = "The payload has started.";
         } else {
-          stateEl.textContent = "Não foi possível concluir.";
+          stateEl.textContent = "Could not complete.";
           stateEl.className = "bad";
           if (!resultEl.textContent)
             resultEl.textContent = armed
-              ? "Reinicie o console antes de tentar novamente."
-              : "Atualize a página antes de tentar novamente.";
+              ? "Restart the console before trying again."
+              : "Refresh the page before trying again.";
         }
       }
     };
@@ -143,10 +143,10 @@
       if (running || startButton.disabled) return;
       running = true;
       startButton.disabled = true;
-      startButton.textContent = "Executando...";
+      startButton.textContent = "Running...";
       stateEl.className = "";
       resultEl.textContent = "";
-      setProgress(2, "Iniciando");
+      setProgress(2, "Starting");
       startJailbreak();
     });
     startButton.disabled = false;
@@ -155,22 +155,22 @@
     const cache = window.applicationCache;
     if (cache) {
       const showCache = function (message) { cacheEl.textContent = message; };
-      if (!navigator.onLine) showCache("Modo offline: arquivos em cache.");
-      else if (cache.status === cache.IDLE) showCache("Disponível offline.");
-      else if (cache.status === cache.DOWNLOADING) showCache("Salvando arquivos para uso offline...");
-      else showCache("Verificando cache offline...");
-      cache.addEventListener("downloading", function () { showCache("Salvando arquivos para uso offline..."); });
+      if (!navigator.onLine) showCache("Offline mode: using cached files.");
+      else if (cache.status === cache.IDLE) showCache("Available offline.");
+      else if (cache.status === cache.DOWNLOADING) showCache("Saving files for offline use...");
+      else showCache("Checking offline cache...");
+      cache.addEventListener("downloading", function () { showCache("Saving files for offline use..."); });
       cache.addEventListener("progress", function (event) {
-        if (event && event.total) showCache("Cache offline: " + Math.round(event.loaded / event.total * 100) + "%");
+        if (event && event.total) showCache("Offline cache: " + Math.round(event.loaded / event.total * 100) + "%");
       });
-      cache.addEventListener("cached", function () { showCache("Disponível offline."); });
-      cache.addEventListener("noupdate", function () { showCache("Disponível offline."); });
+      cache.addEventListener("cached", function () { showCache("Available offline."); });
+      cache.addEventListener("noupdate", function () { showCache("Available offline."); });
       cache.addEventListener("updateready", function () {
         try { cache.swapCache(); } catch (error) {}
-        showCache("Atualização salva. A nova versão estará disponível na próxima visita.");
+        showCache("Update saved. The new version will be available on your next visit.");
       });
-      cache.addEventListener("error", function () { showCache("Cache offline indisponível."); });
-      cache.addEventListener("obsolete", function () { showCache("Cache offline indisponível."); });
+      cache.addEventListener("error", function () { showCache("Offline cache unavailable."); });
+      cache.addEventListener("obsolete", function () { showCache("Offline cache unavailable."); });
     }
   </script>
 </body>
