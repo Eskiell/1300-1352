@@ -51,6 +51,8 @@ function terse(s) {
 const SHOW_LOG = params.get("log") === "1";
 if (SHOW_LOG && document.body) document.body.className = "log";
 function finishUI(ok) {
+  if (window.jbUi && typeof window.jbUi.finish === "function")
+    window.jbUi.finish(ok, armedEver);
   if (SHOW_LOG || !document.body) return;
   const m = document.getElementById("msg");
   if (m)
@@ -86,6 +88,8 @@ function mark(tag, detail) {
     outEl.scrollTop = outEl.scrollHeight;
   }
   post(tag, raw);
+  if (window.jbUi && typeof window.jbUi.progress === "function")
+    window.jbUi.progress(tag);
 }
 
 function trace(tag, detail) {
@@ -147,7 +151,7 @@ let allDone = false,
   kpatched = false,
   payloadRunning = false;
 
-(async function () {
+export async function startJailbreak() {
   let p = null;
 
   const opened = [];
@@ -242,65 +246,12 @@ let allDone = false,
         " src=ps4_offsets.js",
     );
 
-    // ---- benign-miss auto-retry (reads only, before any kernel write) ----
-    // A passA/passB "no crossing" is a recoverable reclaim miss in the READ
-    // phase -- no kernel .data/.text has been touched yet, so reloading and
-    // retrying is safe. The counter lives in sessionStorage so it survives
-    // the reload and is cleared the moment the read phase succeeds, so a
-    // later manual run always starts fresh. NEVER call retryBenign() after a
-    // kernel write: a reload would re-enter with the kernel already modified.
-    // A hard KP (a total reclaim miss that faults inside the cancel walk)
-    // cannot be caught here and still needs a reboot -- this only recovers
-    // the benign, detectable misses.
-    const retryArg = parseInt(params.get("retry") || "", 10);
-    const RETRY_MAX = Number.isFinite(retryArg) && retryArg >= 0 ? retryArg : 4;
-    const RETRY_KEY = "jb1352-read-retry";
-    const retryCount = () => {
-      try {
-        const v = parseInt(sessionStorage.getItem(RETRY_KEY) || "0", 10);
-        return Number.isFinite(v) && v > 0 ? v : 0;
-      } catch (e) {
-        return 0;
-      }
-    };
-    const clearRetry = () => {
-      try {
-        sessionStorage.removeItem(RETRY_KEY);
-      } catch (e) {}
-    };
+    // A benign miss ends this attempt in place. A fresh page is required
+    // before another run because the primitive has modified browser state.
     const retryBenign = (why) => {
-      const n = retryCount();
-      if (n >= RETRY_MAX) {
-        mark(
-          "AUTO-RELOAD-GIVEUP",
-          "why=" + why + " reloads=" + n + " -- reboot and try again",
-        );
-        return false;
-      }
-      let stored = -1;
-      try {
-        sessionStorage.setItem(RETRY_KEY, String(n + 1));
-        stored = parseInt(sessionStorage.getItem(RETRY_KEY) || "-1", 10);
-      } catch (e) {
-        stored = -1;
-      }
-      if (stored !== n + 1) {
-        mark(
-          "AUTO-RELOAD-NO-STORAGE",
-          "why=" + why + " wrote=" + (n + 1) + " read=" + stored,
-        );
-        return false;
-      }
-      mark("AUTO-RELOAD", "why=" + why + " reload=" + (n + 1) + "/" + RETRY_MAX);
-      setTimeout(() => {
-        try {
-          location.reload();
-        } catch (e) {}
-      }, 400);
+      mark("RETRY-NEEDED", "why=" + why + " -- refresh the page and run again");
       return true;
     };
-    if (retryCount() > 0)
-      mark("AUTO-RELOAD-RESUME", "reload=" + retryCount() + "/" + RETRY_MAX);
 
     state("running the primitive...", "warn");
     await new Promise((r) => setTimeout(r, 0));
@@ -1961,9 +1912,7 @@ let allDone = false,
         (((W0 >>> 0) & 7) === 0),
     );
     // Read phase is done: the remaining armings (anchor, caps) touch the
-    // kernel, so from here a failure must NOT auto-reload. Reset the counter
-    // so the next manual run starts fresh.
-    clearRetry();
+    // kernel, so failures from here also end this attempt in place.
 
     const IDT = new int64(0x00001a00, 0xffffff80);
     const GATE_SZ = 16;
@@ -3867,4 +3816,4 @@ let allDone = false,
       finishUI(payloadRunning);
     } catch (eUI) {}
   }
-})();
+}
