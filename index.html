@@ -4,60 +4,67 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PS4 Jailbreak</title>
-  <style>
-    html, body { min-height:100%; margin:0; background:#0b0d10; color:#e6ebf2;
-      font:16px/1.5 "Segoe UI", Arial, sans-serif; }
-    main { box-sizing:border-box; width:100%; max-width:560px; margin:10vh auto 0; padding:24px; }
-    .panel { padding:28px; background:#111720; border:1px solid #293543; border-radius:12px; }
-    h1 { margin:0 0 8px; font-size:27px; line-height:1.2; }
-    #det { margin:0 0 22px; color:#a5b2c1; }
-    #det strong { color:#e6ebf2; }
-    button { display:block; width:100%; min-height:58px; padding:12px 18px; border:0;
-      border-radius:8px; background:#7fd0a0; color:#0b1711; font:700 18px Arial, sans-serif;
-      cursor:pointer; }
-    button:focus { outline:3px solid #d6f5e2; outline-offset:3px; }
-    button:active { background:#a8e4bd; }
-    button:disabled { opacity:.6; cursor:default; }
-    #progress-area { display:none; margin-top:24px; }
-    #progress-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:8px;
-      color:#dce6ef; font-size:14px; }
-    #progress-track { height:14px; overflow:hidden; border-radius:7px; background:#283440; }
-    #progress-fill { width:0; height:100%; border-radius:7px; background:#7fd0a0;
-      transition:width .35s ease; }
-    #state { margin:14px 0 0; min-height:24px; color:#b9c6d4; }
-    #state.ok { color:#7fd0a0; } #state.bad { color:#e59b91; }
-    #cache { margin:16px 0 0; color:#8795a5; font-size:13px; }
-    #result { margin:12px 0 0; color:#a5b2c1; font-size:14px; }
-    #msg { display:none; }
-    #out { display:none; }
-    body.log #out { display:block; margin:20px 0 0; padding:12px; max-height:45vh;
-      overflow:auto; white-space:pre-wrap; background:#0b0d10; border:1px solid #293543;
-      border-radius:7px; font:12px/1.5 monospace; }
-    #out .ok { color:#7fd0a0; } #out .bad { color:#e59b91; }
-    #out .warn { color:#d8c07f; }
-    @media (max-width:600px) { main { margin:20px auto 0; padding:14px; }
-      .panel { padding:22px; } h1 { font-size:24px; } }
-  </style>
+<style>
+  html, body { min-height:100%; margin:0; background:#080d12; color:#e1ebe6;
+    font:15px/1.55 Consolas, "Liberation Mono", Menlo, monospace; }
+  body { background-image:radial-gradient(circle at 50% 15%, #17272a 0, #080d12 58%); }
+  main { box-sizing:border-box; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; width:100%; min-height:100vh; margin:0; padding:48px 24px;
+    text-align:center; }
+  h1 { margin:0 0 8px; font-size:27px; line-height:1.25; font-weight:700; }
+  h1::before { content:"> "; color:#87dda5; }
+  #det { margin:0 0 24px; color:#a4b9ae; }
+  #det strong { color:#eff9f2; }
+  button { display:block; width:100%; max-width:440px; min-height:58px; padding:12px 18px;
+    border:1px solid #7ed9a1; border-radius:5px; background:#193529; color:#d9f9e4;
+    font:700 17px/1.35 Consolas, "Liberation Mono", Menlo, monospace; cursor:pointer; }
+  button::before { content:"> "; color:#93eab2; }
+  button:focus { outline:2px solid #c9f8d8; outline-offset:3px; }
+  button:active { background:#285c3e; }
+  button:disabled { opacity:.7; cursor:default; }
+  #progress-area { display:none; width:100%; max-width:700px; margin-top:26px; }
+  #progress-head { display:flex; justify-content:space-between; margin-bottom:9px;
+    color:#a9c4b3; font-size:13px; }
+  #progress-track { height:12px; overflow:hidden; background:#1f3029;
+    border:1px solid #395341; border-radius:3px; }
+  #progress-fill { width:0; height:100%; background:#81e5a1; transition:width .35s ease; }
+  #state { width:100%; max-width:700px; margin:24px 0 0; min-height:24px;
+    color:#c0d3c6; }
+  #state.ok { color:#8ce3aa; } #state.bad { color:#eeaaa2; }
+  #result { max-width:700px; margin:12px 0 0; color:#a4b9ae; font-size:13px; }
+  #cache { width:100%; max-width:700px; margin:26px 0 0; padding-top:14px;
+    border-top:1px solid #294037;
+    color:#7fa08d; font-size:12px; }
+  #cache:empty, #result:empty { display:none; }
+  #cache::before { content:"CACHE  "; color:#8fbe9d; }
+  #msg, #out { display:none; }
+  body.log #out { box-sizing:border-box; display:block; width:100%; max-width:700px;
+    margin:20px 0 0; padding:12px; max-height:45vh; text-align:left;
+    overflow:auto; white-space:pre-wrap; background:#08100d; border:1px solid #395341;
+    border-radius:4px; font:12px/1.5 Consolas, "Liberation Mono", Menlo, monospace; }
+  #out .ok { color:#8ce3aa; } #out .bad { color:#eeaaa2; }
+  #out .warn { color:#e4bd68; }
+  @media (max-width:600px) { main { padding:42px 24px; }
+    h1 { font-size:23px; } }
+</style>
 </head>
 <body>
   <main>
-    <div class="panel">
-      <h1>PS4 Jailbreak</h1>
-      <p id="det"></p>
-      <button id="start" type="button" disabled>Loading...</button>
-      <div id="progress-area" aria-live="polite">
-        <div id="progress-head"><span id="stage">Preparing...</span><span id="percent">0%</span></div>
-        <div id="progress-track" role="progressbar" aria-label="Jailbreak progress"
-          aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div id="progress-fill"></div>
-        </div>
+    <h1>PS4 Jailbreak</h1>
+    <p id="det"></p>
+    <button id="start" type="button" disabled>Loading...</button>
+    <div id="progress-area" aria-live="polite">
+      <div id="progress-head"><span id="stage">Preparing...</span><span id="percent">0%</span></div>
+      <div id="progress-track" role="progressbar" aria-label="Jailbreak progress"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="progress-fill"></div>
       </div>
-      <p id="state" role="status">Ready to start.</p>
-      <p id="result"></p>
-      <p id="cache"></p>
-      <div id="msg"></div>
-      <div id="out"></div>
     </div>
+    <p id="state" role="status">Ready to start.</p>
+    <p id="result"></p>
+    <p id="cache"></p>
+    <div id="msg"></div>
+    <div id="out"></div>
   </main>
   <script type="module">
     import { startJailbreak } from "./jb.js?v=21";
