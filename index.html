@@ -59,7 +59,7 @@
     </div>
   </main>
   <script type="module">
-    import { startJailbreak } from "./jb.js?v=20";
+    import { startJailbreak } from "./jb.js?v=21";
 
     const params = new URLSearchParams(location.search);
     const startButton = document.getElementById("start");
@@ -98,6 +98,7 @@
       "BUILD": [5, "Preparing"],
       "PRIMITIVE-OK": [20, "Initial access complete"],
       "BASES": [30, "Checking modules"],
+      "JB-PROBE": [35, "Checking console state"],
       "PR-LEAK": [42, "Reading memory"],
       "PR-PASSB": [55, "Validating access"],
       "KF-WRITE": [67, "Preparing kernel"],
@@ -122,9 +123,18 @@
         if (milestones[tag]) setProgress(milestones[tag][0], milestones[tag][1]);
         if (tag === "RETRY-NEEDED") resultEl.textContent = "Refresh the page before trying again.";
       },
-      finish: function (ok, armed) {
+      finish: function (ok, armed, alreadyUnlocked) {
         running = false;
-        if (ok) {
+        if (alreadyUnlocked) {
+          setProgress(100, "Already unlocked");
+          stateEl.textContent = "Kernel jailbreak already active.";
+          stateEl.className = "ok";
+          resultEl.textContent = ok
+            ? "Kernel exploit skipped. Payload started."
+            : params.get("relaunch") === "1" && params.get("payload") !== "0"
+              ? "Kernel exploit skipped. Payload relaunch did not complete."
+              : "Kernel exploit and payload launch skipped.";
+        } else if (ok) {
           setProgress(100, "Complete");
           stateEl.textContent = "Complete.";
           stateEl.className = "ok";

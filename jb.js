@@ -9,6 +9,7 @@ const lines = [];
 let passCount = 0,
   failCount = 0;
 let armedEver = false;
+let alreadyUnlocked = false;
 const params = new URLSearchParams(location.search);
 const STOP_BEFORE_DOUBLE = params.get("stop") === "beforedouble";
 
@@ -52,16 +53,18 @@ const SHOW_LOG = params.get("log") === "1";
 if (SHOW_LOG && document.body) document.body.className = "log";
 function finishUI(ok) {
   if (window.jbUi && typeof window.jbUi.finish === "function")
-    window.jbUi.finish(ok, armedEver);
+    window.jbUi.finish(ok, armedEver, alreadyUnlocked);
   if (SHOW_LOG || !document.body) return;
   const m = document.getElementById("msg");
   if (m)
-    m.textContent = ok
-      ? "DONE"
-      : armedEver
-        ? "Restart your console"
-        : "Refresh the page and run again";
-  document.body.className = ok ? "done" : "fail";
+    m.textContent = alreadyUnlocked
+      ? "ALREADY JAILBROKEN"
+      : ok
+        ? "DONE"
+        : armedEver
+          ? "Restart your console"
+          : "Refresh the page and run again";
+  document.body.className = ok || alreadyUnlocked ? "done" : "fail";
 }
 function mark(tag, detail) {
   const raw = detail;
@@ -170,6 +173,7 @@ export async function startJailbreak() {
     const DO_PATCH = params.get("patch") !== "0";
     const DO_PAYLOAD = params.get("payload") !== "0";
     const SKIPJB = params.get("skipjb") !== "0";
+    const RELAUNCH_ON_UNLOCKED = params.get("relaunch") === "1";
 
     const KEEP_JB = params.get("keepjb") === "1";
 
@@ -578,12 +582,14 @@ export async function startJailbreak() {
         const uidNow = sc(SYS.getuid).i32;
         mark("JB-PROBE", "setuid=" + suRv + " uid=" + uidNow);
         if (suRv === 0 && uidNow === 0) {
+          alreadyUnlocked = true;
           jailbroken = true;
           mark(
             "JB-ALREADY",
-            "kernel already patched -- 663 race skipped, pid=" + pid,
+            "kernel already patched -- 663 race skipped, pid=" + pid +
+              " payload_relaunch=" + (DO_PAYLOAD && RELAUNCH_ON_UNLOCKED ? 1 : 0),
           );
-          if (DO_PAYLOAD) await relaunchPayload();
+          if (DO_PAYLOAD && RELAUNCH_ON_UNLOCKED) await relaunchPayload();
           mark(
             "EG-VERDICT",
             "fw=" +
