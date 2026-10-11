@@ -16,6 +16,7 @@
       border-radius:8px; background:#7fd0a0; color:#0b1711; font:700 18px Arial, sans-serif;
       cursor:pointer; }
     button:focus { outline:3px solid #d6f5e2; outline-offset:3px; }
+    button:active { background:#a8e4bd; }
     button:disabled { opacity:.6; cursor:default; }
     #progress-area { display:none; margin-top:24px; }
     #progress-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:8px;
@@ -125,6 +126,8 @@
       },
       finish: function (ok, armed, alreadyUnlocked) {
         running = false;
+        startButton.blur();
+        startButton.style.display = "none";
         if (alreadyUnlocked) {
           setProgress(100, "Already unlocked");
           stateEl.textContent = "Kernel jailbreak already active.";
@@ -157,7 +160,10 @@
       stateEl.className = "";
       resultEl.textContent = "";
       setProgress(2, "Starting");
-      startJailbreak();
+      // Let the button and progress bar paint before the heavy browser stage.
+      if (window.requestAnimationFrame)
+        window.requestAnimationFrame(function () { setTimeout(startJailbreak, 80); });
+      else setTimeout(startJailbreak, 80);
     });
     startButton.disabled = false;
     startButton.focus();
